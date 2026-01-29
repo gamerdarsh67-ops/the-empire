@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DARSH — THE EMPIRE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+ --gold:#c9a44b;
+ --bg:#0a0a0b;
+ --card:#121214;
+ --text:#eaeaea;
+ --muted:#9a9a9a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:Segoe UI,Roboto,Arial;scroll-behavior:smooth}
+header{position:sticky;top:0;z-index:1000;background:#000;border-bottom:1px solid #222;padding:18px 40px;display:flex;justify-content:space-between;align-items:center}
+header h1{letter-spacing:3px;font-size:26px}
+nav a{margin-left:20px;color:#fff;text-decoration:none;font-size:14px;opacity:.8}
+nav a:hover{opacity:1}
+.hero{text-align:center;padding:120px 0}
+.hero h2{font-size:60px;letter-spacing:6px;margin-bottom:20px}
+.hero p{max-width:900px;margin:auto;line-height:1.9;font-size:18px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:16px;margin:40px 0}
+input,select{background:#111;border:1px solid #333;color:#fff;padding:12px 14px;border-radius:8px;min-width:180px}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:30px}
+.card{background:var(--card);border-radius:18px;box-shadow:0 15px 40px rgba(0,0,0,.6);padding:18px;display:flex;flex-direction:column}
+.card img{width:100%;height:220px;object-fit:cover;border-radius:14px;margin-bottom:12px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--muted)}
+.card strong{margin:10px 0}
+.card button{margin-top:auto;background:linear-gradient(135deg,var(--gold),#f5d98c);border:none;color:#000;padding:12px;border-radius:10px;font-weight:700;cursor:pointer}
+.swipe{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:40px}
+.page{min-width:100%;scroll-snap-align:start}
+#cartBtn{position:fixed;right:30px;bottom:30px;background:var(--gold);color:#000;padding:18px;border-radius:50%;font-weight:800;cursor:pointer;z-index:1000}
+#cart{position:fixed;right:0;top:0;width:380px;height:100vh;background:#0e0e10;border-left:1px solid #222;padding:30px;display:none;z-index:2000;overflow:auto}
+#cart h3{margin-bottom:20px}
+#cart ul{list-style:none;margin-bottom:20px}
+#cart li{font-size:13px;margin-bottom:8px}
+#cart button{width:100%;padding:14px;border:none;border-radius:10px;font-weight:700}
+footer{text-align:center;padding:60px;border-top:1px solid #222;color:var(--muted)}
+/* ================= MODAL ================= */
+.modal{display:none;position:fixed;z-index:3000;left:0;top:0;width:100%;height:100%;overflow:auto;background:rgba(0,0,0,0.8)}
+.modal-content{background:#121214;margin:10% auto;padding:30px;border-radius:20px;width:90%;max-width:500px;position:relative}
+.modal-content h2{margin-bottom:20px}
+.modal-content label{display:block;margin-top:10px;font-size:14px;color:var(--muted)}
+.modal-content input, .modal-content select{width:100%;padding:10px;margin-top:6px;border-radius:8px;border:1px solid #333;background:#111;color:#fff}
+.modal-content button{margin-top:20px;width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),#f5d98c);color:#000;font-weight:700;cursor:pointer}
+.modal-close{position:absolute;top:10px;right:20px;color:#fff;font-size:20px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+<h1>DARSH — THE EMPIRE</h1>
+<nav>
+<a href="#products">Collection</a>
+<a href="#orders">My Orders</a>
+<a href="#support">Customer Care</a>
+</nav>
+</header>
+
+<div id="cartBtn" onclick="toggleCart()">🛒</div>
+
+<div id="cart">
+<h3>Your Cart</h3>
+<ul id="cartItems"></ul>
+<p><strong>Total:</strong> <span id="total">$0</span></p>
+<button onclick="openCheckoutModal()">Checkout</button>
+</div>
+
+<main>
+<section class="hero">
+<h2>THE EMPIRE OF TIME</h2>
+<p>Darsh — The Empire is a digital maison dedicated to the world’s most revered horological institutions. Inspired by Rolex, Patek Philippe, and elite global brands, our platform embodies permanence, precision, and prestige.</p>
+</section>
+
+<section id="products">
+<h2>Collection</h2>
+<div class="controls">
+<input id="search" placeholder="Search brand or model">
+<select id="brandFilter"></select>
+<select id="currency"></select>
+<select id="paymentSelect">
+<option>Credit / Debit Card</option>
+<option>Crypto — Bitcoin</option>
+<option>Crypto — Ethereum</option>
+<option>Crypto — USDT</option>
+</select>
+</div>
+
+<div class="swipe" id="swipe"></div>
+</section>
+
+<section id="orders">
+<h2>My Orders</h2>
+<ul id="orderList"></ul>
+</section>
+
+<section id="support">
+<h2>Customer Care</h2>
+<p>Email: support@darshempire.com<br>Phone: +1 800 000 0000<br>Dedicated concierge service for collectors worldwide.</p>
+</section>
+
+</main>
+
+<footer>© 2026 DARSH — THE EMPIRE</footer>
+
+<!-- ================= MODAL ================= -->
+<div id="checkoutModal" class="modal">
+<div class="modal-content">
+<span class="modal-close" onclick="closeCheckoutModal()">&times;</span>
+<h2>Checkout</h2>
+<form id="checkoutForm">
+<label>Full Name</label>
+<input type="text" id="fullName" required>
+<label>Address</label>
+<input type="text" id="address" required>
+<label>Mobile Number</label>
+<input type="text" id="mobile" required>
+<label>PIN Code</label>
+<input type="text" id="pin" required>
+<label>Payment Method</label>
+<select id="modalPayment">
+<option>Credit / Debit Card</option>
+<option>Crypto — Bitcoin</option>
+<option>Crypto — Ethereum</option>
+<option>Crypto — USDT</option>
+</select>
+<button type="submit">Confirm Order</button>
+</form>
+</div>
+</div>
+
+<script>
+// DOM Elements
+const brandFilter=document.getElementById('brandFilter');
+const search=document.getElementById('search');
+const currencySelect=document.getElementById('currency');
+const paymentSelect=document.getElementById('paymentSelect');
+const swipe=document.getElementById('swipe');
+const cartBtn=document.getElementById('cartBtn');
+const cartDiv=document.getElementById('cart');
+const cartItemsUl=document.getElementById('cartItems');
+const totalSpan=document.getElementById('total');
+const orderList=document.getElementById('orderList');
+const checkoutModal=document.getElementById('checkoutModal');
+const checkoutForm=document.getElementById('checkoutForm');
+
+// Data
+const brands=["Patek Philippe","Audemars Piguet","Rolex","Bovet","F.P. Journe","Jacob & Co"];
+const rates={USD:1,EUR:0.92,INR:83};
+let currency='USD';
+const products=[];
+for(let i=1;i<=1000;i++){
+ const b=brands[i%brands.length];
+ products.push({id:i,brand:b,name:`${b} Reference ${i}`,price:100000+(i*300),img:`https://picsum.photos/400/300?random=${i}`});
+}
+let cart=[];
+
+// Initialize
+brandFilter.innerHTML='<option>All Brands</option>'+brands.map(b=>`<option>${b}</option>`).join('');
+currencySelect.innerHTML=Object.keys(rates).map(c=>`<option>${c}</option>`).join('');
+currencySelect.onchange=e=>{currency=e.target.value;render();}
+brandFilter.onchange=()=>render();
+search.oninput=()=>render();
+render();
+loadOrders();
+
+// Render Products
+function render(){
+ swipe.innerHTML='';
+ const filtered=products.filter(p=>(brandFilter.value==='All Brands'||p.brand===brandFilter.value)&&p.name.toLowerCase().includes(search.value.toLowerCase()));
+ const perPage=40;
+ for(let pg=0;pg<26;pg++){
+  const page=document.createElement('div');page.className='page products';
+  filtered.slice(pg*perPage,(pg+1)*perPage).forEach(p=>{
+   const card=document.createElement('div');
+   card.className='card';
+   card.innerHTML=`<img src='${p.img}'><h3>${p.name}</h3><p>${p.brand}</p><strong>${currency} ${(p.price*rates[currency]).toLocaleString()}</strong>`;
+   const btn=document.createElement('button');btn.textContent='Add to Cart';
+   btn.onclick=()=>{addToCart(p.id)};
+   card.appendChild(btn);
+   page.appendChild(card);
+  });
+  swipe.appendChild(page);
+ }
+}
+
+// Cart Functions
+function addToCart(id){
+ const existing=cart.find(c=>c.id===id);
+ if(existing) existing.qty++; else cart.push({id,qty:1});
+ renderCart();
+}
+function renderCart(){
+ cartItemsUl.innerHTML='';
+ let total=0;
+ cart.forEach(c=>{
+  const p=products.find(x=>x.id===c.id);
+  if(!p) return;
+  total+=p.price*c.qty;
+  const li=document.createElement('li');
+  li.textContent=`${p.name} × ${c.qty}`;
+  cartItemsUl.appendChild(li);
+ });
+ totalSpan.textContent=currency+' '+(total*rates[currency]).toLocaleString();
+}
+cartBtn.onclick=()=>{cartDiv.style.display=cartDiv.style.display==='block'?'none':'block'}
+
+// Checkout Modal
+function openCheckoutModal(){ if(cart.length===0){alert('Cart is empty!'); return;} checkoutModal.style.display='block'; }
+function closeCheckoutModal(){ checkoutModal.style.display='none'; }
+checkoutForm.onsubmit=function(e){
+ e.preventDefault();
+ const name=document.getElementById('fullName').value;
+ const addr=document.getElementById('address').value;
+ const mobile=document.getElementById('mobile').value;
+ const pin=document.getElementById('pin').value;
+ const pay=document.getElementById('modalPayment').value;
+ if(!name||!addr||!mobile||!pin){alert('All fields required');return;}
+ const orders=JSON.parse(localStorage.getItem('orders')||'[]');
+ orders.push({id:Date.now(),name,addr,mobile,pin,pay,cart:[...cart],total:totalSpan.textContent});
+ localStorage.setItem('orders',JSON.stringify(orders));
+ cart=[];renderCart();loadOrders();closeCheckoutModal();alert('Order Confirmed!');
+}
+
+// Load Orders
+function loadOrders(){
+ const orders=JSON.parse(localStorage.getItem('orders')||'[]');
+ orderList.innerHTML='';
+ orders.forEach(o=>{
+  const li=document.createElement('li');
+  li.textContent=`Order ${o.id} — ${o.total} — ${o.pay}`;
+  orderList.appendChild(li);
+ });
+}
+</script>
+</body>
+</html>
